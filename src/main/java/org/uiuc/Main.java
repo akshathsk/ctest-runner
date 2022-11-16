@@ -24,7 +24,7 @@ public class Main {
 
     Process p = null;
     try {
-      p = Runtime.getRuntime().exec("mvn test -Dtest=" + testCase + " -DfailIfNoTests=false");
+      p = Runtime.getRuntime().exec("mvn test -pl " + module + " -Dtest=" + testCase + " -DfailIfNoTests=false");
     } catch (IOException e) {
       System.err.println(ERROR_MSG);
       e.printStackTrace();
