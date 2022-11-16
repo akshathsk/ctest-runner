@@ -9,15 +9,14 @@ public class Main {
 
     String sourceDir = args[0];
     String sourceFileName = args[1];
-    String destDir = args[2];
-    String destFileName = args[3];
-    String testCase = args[4];
+    String module = args[2];
+    String destFileName = "application2.yml";
+    String testCase = args[3];
 
-    System.out.println("copying " + sourceFileName + "from " + sourceDir + "to " + destDir);
+    System.out.println("copying " + sourceFileName + "from " + sourceDir + "to " + moduleToDirMap.get(module));
 
-    Process p1 = null;
     try {
-      p1 = Runtime.getRuntime().exec("cp " + sourceDir + "/" + sourceFileName + " " + destDir + "/" + destFileName);
+      Runtime.getRuntime().exec("cp " + sourceDir + "/" + sourceFileName + " " + moduleToDirMap.get(module) + "/" + destFileName);
     } catch (IOException e) {
       System.err.println(ERROR_MSG);
       e.printStackTrace();
