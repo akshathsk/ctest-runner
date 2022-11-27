@@ -11,6 +11,17 @@ public interface AppConstants {
       put("oap-server/server-configuration/configuration-apollo", "./oap-server/server-configuration/configuration-apollo/src/test/resources/");
       put("oap-server/server-configuration/configuration-etcd", "./oap-server/server-configuration/configuration-etcd/src/test/resources/");
       put("oap-server/server-configuration/configuration-zookeeper", "./oap-server/server-configuration/configuration-zookeeper/src/test/resources/");
+      put("oap-server/analyzer/agent-analyzer", "./oap-server/analyzer/agent-analyzer/src/main/resources/");
+    }
+  };
+
+  Map<String, String> moduleToFileNameMap = new HashMap<String, String>() {
+    {
+      put("oap-server/server-starter", "application2.yml");
+      put("oap-server/server-configuration/configuration-apollo", "application2.yml");
+      put("oap-server/server-configuration/configuration-etcd", "application2.yml");
+      put("oap-server/server-configuration/configuration-zookeeper", "application2.yml");
+      put("oap-server/analyzer/agent-analyzer", "trace-sampling-policy-settings2.yml");
     }
   };
 

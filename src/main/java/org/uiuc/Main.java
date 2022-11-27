@@ -10,7 +10,7 @@ public class Main {
     String sourceDir = args[0];
     String sourceFileName = args[1];
     String module = args[2];
-    String destFileName = "application2.yml";
+    String destFileName = moduleToFileNameMap.get(module);
     String testCase = args[3];
 
     System.out.println("copying " + sourceFileName + "from " + sourceDir + "to " + moduleToDirMap.get(module));
