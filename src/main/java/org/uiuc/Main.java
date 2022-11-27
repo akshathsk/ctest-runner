@@ -13,7 +13,7 @@ public class Main {
     String destFileName = moduleToFileNameMap.get(module);
     String testCase = args[3];
 
-    System.out.println("copying " + sourceFileName + "from " + sourceDir + "to " + moduleToDirMap.get(module));
+    System.out.println("copying < " + sourceFileName + " > from < " + sourceDir + " > to < " + moduleToDirMap.get(module) + " >");
 
     try {
       Runtime.getRuntime().exec("cp " + sourceDir + "/" + sourceFileName + " " + moduleToDirMap.get(module) + "/" + destFileName);
