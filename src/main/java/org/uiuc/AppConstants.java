@@ -12,6 +12,7 @@ public interface AppConstants {
       put("oap-server/server-configuration/configuration-etcd", "./oap-server/server-configuration/configuration-etcd/src/test/resources/");
       put("oap-server/server-configuration/configuration-zookeeper", "./oap-server/server-configuration/configuration-zookeeper/src/test/resources/");
       put("oap-server/analyzer/agent-analyzer", "./oap-server/analyzer/agent-analyzer/src/main/resources/");
+      put("oap-server/server-configuration/configuration-nacos", "./oap-server/server-configuration/configuration-nacos/src/test/resources/");
     }
   };
 
@@ -22,6 +23,7 @@ public interface AppConstants {
       put("oap-server/server-configuration/configuration-etcd", "application2.yml");
       put("oap-server/server-configuration/configuration-zookeeper", "application2.yml");
       put("oap-server/analyzer/agent-analyzer", "trace-sampling-policy-settings2.yml");
+      put("oap-server/server-configuration/configuration-nacos", "application2.yml");
     }
   };
 
