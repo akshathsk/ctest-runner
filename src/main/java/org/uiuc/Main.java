@@ -9,9 +9,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,7 +83,7 @@ public class Main {
             .collect(Collectors.toMap(x -> x.split(">")[1], y -> y.split(">")[0]));
 
     List<String> finalReport = new ArrayList<>();
-    Map<String, List<String>> finalParamToTestReport = new LinkedHashMap<>();
+    Map<String, Set<String>> finalParamToTestReport = new LinkedHashMap<>();
     testToConfigList.forEach((testCase, configList) -> {
       configList.forEach(config -> {
         List<String> allMatchingFiles = overrideConfigFileList.stream().filter(x -> x.split("=")[0].equals(config)).collect(Collectors.toList());
@@ -112,7 +114,7 @@ public class Main {
   }
 
   private static void runTest(String sourceDir, String sourceFileName, String module, String testCase,
-                              List<String> finalReport, Map<String, List<String>> finalParamToTestReport) throws IOException, InterruptedException {
+                              List<String> finalReport, Map<String, Set<String>> finalParamToTestReport) throws IOException, InterruptedException {
 
     long startTime = System.nanoTime();
 
@@ -164,7 +166,7 @@ public class Main {
       next = bufReader.readLine();
     }
     if (!finalParamToTestReport.containsKey(parameter)) {
-      List<String> testList = new ArrayList<>();
+      Set<String> testList = new HashSet<>();
       testList.add(testCase);
       finalParamToTestReport.put(parameter, testList);
     } else {
