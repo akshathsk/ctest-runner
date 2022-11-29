@@ -98,7 +98,7 @@ public class Main {
 
     System.out.println(finalReport);
     FileWriter writer2 = new FileWriter(resultDir + "/test_result.tsv");
-    for (String str : arrList) {
+    for (String str : finalReport) {
       writer2.write(str + System.lineSeparator());
     }
     writer2.close();
@@ -113,6 +113,8 @@ public class Main {
 
   private static void runTest(String sourceDir, String sourceFileName, String module, String testCase,
                               List<String> finalReport, Map<String, List<String>> finalParamToTestReport) throws IOException, InterruptedException {
+
+    long startTime = System.nanoTime();
 
     String destFileName = moduleToFileNameMap.get(module);
 
@@ -150,12 +152,14 @@ public class Main {
     BufferedReader bufReader = new BufferedReader(new StringReader(output.toString()));
     String next = bufReader.readLine();
     String parameter = sourceFileName.split("=")[0];
+    long endTime = System.nanoTime();
+    long execTime = (endTime - startTime);
     while (next != null) {
       System.out.println(next);
       if (next.contains("BUILD FAILURE")) {
-        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "f" + "");
+        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "f" + "\t" + execTime);
       } else if (next.contains("BUILD SUCCESS")) {
-        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "p" + "");
+        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "p" + "\t" + execTime);
       }
       next = bufReader.readLine();
     }
