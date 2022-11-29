@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,13 +23,14 @@ public class Main {
     String configDestDir = args[0];
     String testToConfigMapperInputFile = args[1];
     String generatedValueListFile = args[2];
+    String resultDir = args[3];
 
     List<String> arrList = new ArrayList<>();
     try (Stream<String> lines = Files.lines(Paths.get(generatedValueListFile), Charset.defaultCharset())) {
       lines.forEachOrdered(line -> {
         if (!line.isEmpty()) {
           String[] split = line.split("\t");
-          if (!split[1].equals("SKIP") || !split[2].equals("SKIP")) {
+          if (!line.contains("SKIP")) {
             arrList.add(split[0] + "=" + split[1]);
             arrList.add(split[0] + "=" + split[2]);
           }
@@ -79,24 +81,38 @@ public class Main {
             .collect(Collectors.toMap(x -> x.split(">")[1], y -> y.split(">")[0]));
 
     List<String> finalReport = new ArrayList<>();
+    Map<String, List<String>> finalParamToTestReport = new LinkedHashMap<>();
     testToConfigList.forEach((testCase, configList) -> {
       configList.forEach(config -> {
         List<String> allMatchingFiles = overrideConfigFileList.stream().filter(x -> x.split("=")[0].equals(config)).collect(Collectors.toList());
         allMatchingFiles.forEach(c -> {
           System.out.println("Module : " + testCaseToModuleMap.get(testCase) + " TestCase : " + testCase + " destFileName : " + c);
           try {
-            runTest(configDestDir, c, testCaseToModuleMap.get(testCase), testCase, finalReport);
+            runTest(configDestDir, c, testCaseToModuleMap.get(testCase), testCase, finalReport, finalParamToTestReport);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
         });
       });
     });
+
     System.out.println(finalReport);
+    FileWriter writer2 = new FileWriter(resultDir + "/test_result.tsv");
+    for (String str : arrList) {
+      writer2.write(str + System.lineSeparator());
+    }
+    writer2.close();
+
+    String finalCtestJson = gson.toJson(finalParamToTestReport);
+    System.out.println(finalCtestJson);
+    FileWriter writer3 = new FileWriter(resultDir + "/ctests-skywalking.json");
+    writer3.write(finalCtestJson);
+    writer3.close();
 
   }
 
-  private static void runTest(String sourceDir, String sourceFileName, String module, String testCase, List<String> finalReport) throws IOException, InterruptedException {
+  private static void runTest(String sourceDir, String sourceFileName, String module, String testCase,
+                              List<String> finalReport, Map<String, List<String>> finalParamToTestReport) throws IOException, InterruptedException {
 
     String destFileName = moduleToFileNameMap.get(module);
 
@@ -133,14 +149,22 @@ public class Main {
     copy(p.getInputStream(), output);
     BufferedReader bufReader = new BufferedReader(new StringReader(output.toString()));
     String next = bufReader.readLine();
+    String parameter = sourceFileName.split("=")[0];
     while (next != null) {
       System.out.println(next);
       if (next.contains("BUILD FAILURE")) {
-        finalReport.add(sourceFileName.split("=")[0] + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "f" + "");
+        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "f" + "");
       } else if (next.contains("BUILD SUCCESS")) {
-        finalReport.add(sourceFileName.split("=")[0] + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "p" + "");
+        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "p" + "");
       }
       next = bufReader.readLine();
+    }
+    if (!finalParamToTestReport.containsKey(parameter)) {
+      List<String> testList = new ArrayList<>();
+      testList.add(testCase);
+      finalParamToTestReport.put(parameter, testList);
+    } else {
+      finalParamToTestReport.get(parameter).add(testCase);
     }
     p.waitFor();
   }
