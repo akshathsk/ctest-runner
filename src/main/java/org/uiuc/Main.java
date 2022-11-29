@@ -36,7 +36,7 @@ public class Main {
       });
     }
     System.out.println(arrList);
-    FileWriter writer = new FileWriter(Main.class.getClass().getResource("/").getPath() + "/output.txt");
+    FileWriter writer = new FileWriter(configDestDir + "/output.txt");
     for (String str : arrList) {
       writer.write(str + System.lineSeparator());
     }
@@ -44,7 +44,7 @@ public class Main {
 
     List<String> overrideConfigFileList = new ArrayList<>();
     int i = 0;
-    try (Stream<String> lines = Files.lines(Paths.get(Main.class.getClass().getResource("/output.txt").getPath()), Charset.defaultCharset())) {
+    try (Stream<String> lines = Files.lines(Paths.get(configDestDir + "/output.txt"), Charset.defaultCharset())) {
       lines.forEachOrdered(line -> {
         try {
           File file = new File("config" + i + ".txt");
