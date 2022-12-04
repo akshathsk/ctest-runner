@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -83,19 +84,50 @@ public class Main {
             .collect(Collectors.toMap(x -> x.split(">")[1], y -> y.split(">")[0]));
 
     List<String> finalReport = new ArrayList<>();
-    Map<String, Set<String>> finalParamToTestReport = new LinkedHashMap<>();
+    Map<String, Integer> testParamToSuccessCountMap = new HashMap<>();
+    Map<String, Integer> testParamToSuccessBooleanCountMap = new HashMap<>();
     testToConfigList.forEach((testCase, configList) -> {
       configList.forEach(config -> {
         List<String> allMatchingFiles = overrideConfigFileList.stream().filter(x -> x.split("=")[0].equals(config)).collect(Collectors.toList());
         allMatchingFiles.forEach(c -> {
           System.out.println("Module : " + testCaseToModuleMap.get(testCase) + " TestCase : " + testCase + " destFileName : " + c);
           try {
-            runTest(configDestDir, c, testCaseToModuleMap.get(testCase), testCase, finalReport, finalParamToTestReport);
+            runTest(configDestDir, c, testCaseToModuleMap.get(testCase), testCase, finalReport, testParamToSuccessCountMap, testParamToSuccessBooleanCountMap);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
         });
       });
+    });
+
+    Map<String, Set<String>> finalParamToTestReport = new LinkedHashMap<>();
+
+    testParamToSuccessCountMap.forEach((k, v) -> {
+      if (v >= 2) {
+        String[] split = k.split("_");
+        String parameter = split[0];
+        String testCase = split[1];
+        if (!finalParamToTestReport.containsKey(parameter)) {
+          Set<String> testList = new HashSet<>();
+          testList.add(testCase);
+          finalParamToTestReport.put(parameter, testList);
+        } else {
+          finalParamToTestReport.get(parameter).add(testCase);
+        }
+      }
+    });
+
+    testParamToSuccessBooleanCountMap.forEach((k, v) -> {
+      String[] split = k.split("_");
+      String parameter = split[0];
+      String testCase = split[1];
+      if (!finalParamToTestReport.containsKey(parameter)) {
+        Set<String> testList = new HashSet<>();
+        testList.add(testCase);
+        finalParamToTestReport.put(parameter, testList);
+      } else {
+        finalParamToTestReport.get(parameter).add(testCase);
+      }
     });
 
     System.out.println(finalReport);
@@ -114,7 +146,7 @@ public class Main {
   }
 
   private static void runTest(String sourceDir, String sourceFileName, String module, String testCase,
-                              List<String> finalReport, Map<String, Set<String>> finalParamToTestReport) throws IOException, InterruptedException {
+                              List<String> finalReport, Map<String, Integer> testParamToSuccessCountMap, Map<String, Integer> testParamToSuccessBooleanCountMap) throws IOException, InterruptedException {
 
     long startTime = System.nanoTime();
 
@@ -158,24 +190,31 @@ public class Main {
     long execTime = (endTime - startTime);
     while (next != null) {
       System.out.println(next);
+      String paramValue = sourceFileName.split("=")[1];
       if (next.contains("BUILD FAILURE")) {
-        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "f" + "\t" + execTime);
+        finalReport.add(parameter + "\t" + testCase + "\t" + paramValue + "\t" + "f" + "\t" + execTime);
       } else if (next.contains("BUILD SUCCESS")) {
-        finalReport.add(parameter + "\t" + testCase + "\t" + sourceFileName.split("=")[1] + "\t" + "p" + "\t" + execTime);
+        finalReport.add(parameter + "\t" + testCase + "\t" + paramValue + "\t" + "p" + "\t" + execTime);
+        String key = String.join("_", parameter, testCase);
+        if (paramValue.equals("TRUE") || paramValue.equals("FALSE")) {
+          if (!testParamToSuccessBooleanCountMap.containsKey(key)) {
+            testParamToSuccessBooleanCountMap.put(key, 1);
+          } else {
+            testParamToSuccessBooleanCountMap.put(key, testParamToSuccessBooleanCountMap.get(key) + 1);
+          }
+        } else {
+          if (!testParamToSuccessCountMap.containsKey(key)) {
+            testParamToSuccessCountMap.put(key, 1);
+          } else {
+            testParamToSuccessCountMap.put(key, testParamToSuccessCountMap.get(key) + 1);
+          }
+        }
       }
       next = bufReader.readLine();
     }
-    if (!finalParamToTestReport.containsKey(parameter)) {
-      Set<String> testList = new HashSet<>();
-      testList.add(testCase);
-      finalParamToTestReport.put(parameter, testList);
-    } else {
-      finalParamToTestReport.get(parameter).add(testCase);
-    }
     p.waitFor();
   }
-
-
+  
   public static void copy(InputStream in, OutputStream out) throws IOException {
     while (true) {
       int c = in.read();
