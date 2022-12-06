@@ -30,26 +30,7 @@ public class Main {
       e.printStackTrace();
     }
 
-    OutputStream output = new OutputStream() {
-      private final StringBuilder string = new StringBuilder();
-
-      @Override
-      public void write(int b) {
-        this.string.append((char) b);
-      }
-
-      public String toString() {
-        return this.string.toString();
-      }
-    };
-
-    copy(p.getInputStream(), output);
-    BufferedReader bufReader = new BufferedReader(new StringReader(output.toString()));
-    String next = bufReader.readLine();
-    while (next != null) {
-      System.out.println(next);
-      next = bufReader.readLine();
-    }
+    copy(p.getInputStream(), System.out);
     p.waitFor();
   }
 
